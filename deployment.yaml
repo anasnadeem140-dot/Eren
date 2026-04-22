@@ -14,18 +14,6 @@ spec:
       labels:
         app: eren-server
     spec:
-      initContainers:
-        - name: fix-permissions
-          image: busybox:latest
-          command:
-            - sh
-            - -c
-            - |
-              mkdir -p /data
-              chmod 777 /data
-          volumeMounts:
-            - name: telegram-data
-              mountPath: /data
       containers:
         - name: container
           image: aiogram/telegram-bot-api:latest
@@ -43,19 +31,7 @@ spec:
               mountPath: /var/lib/telegram-bot-api
       volumes:
         - name: telegram-data
-          persistentVolumeClaim:
-            claimName: telegram-data
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: telegram-data
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 40Gi
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
