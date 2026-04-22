@@ -17,6 +17,13 @@ spec:
       containers:
         - name: container
           image: aiogram/telegram-bot-api:latest
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /data/telegram-cache
+              ln -s /data/telegram-cache /var/lib/telegram-bot-api
+              telegram-bot-api --api-id=${TELEGRAM_API_ID} --api-hash=${TELEGRAM_API_HASH} --local --dir=/var/lib/telegram-bot-api --http-port=8080
           ports:
             - containerPort: 8080
           env:
@@ -28,10 +35,22 @@ spec:
               value: "8080"
           volumeMounts:
             - name: telegram-data
-              mountPath: /var/lib/telegram-bot-api
+              mountPath: /data
       volumes:
         - name: telegram-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: telegram-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: telegram-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 40Gi
 ---
 apiVersion: v1
 kind: Service
