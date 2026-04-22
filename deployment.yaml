@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eren-server
+  labels:
+    app: eren-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eren-server
+  template:
+    metadata:
+      labels:
+        app: eren-server
+    spec:
+      containers:
+        - name: container
+          image: aiogram/telegram-bot-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TELEGRAM_API_ID
+              value: "30369601"
+            - name: TELEGRAM_API_HASH
+              value: "b3110dfdc4dfb45111e8128a9f0e7639"
+            - name: TELEGRAM_HTTP_PORT
+              value: "8080"
+          volumeMounts:
+            - name: telegram-data
+              mountPath: /var/lib/telegram-bot-api
+      volumes:
+        - name: telegram-data
+          persistentVolumeClaim:
+            claimName: telegram-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: telegram-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 40Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eren-server
+spec:
+  selector:
+    app: eren-server
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: eren-server-route
+spec:
+  to:
+    kind: Service
+    name: eren-server
+  port:
+    targetPort: 8080
